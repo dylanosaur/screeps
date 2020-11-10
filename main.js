@@ -2,12 +2,22 @@ var roleHarvester = require('role.harvester');
 var roleUpgrader = require('role.upgrader');
 var roleBuilder = require('role.builder');
 
-module.exports.loop = function () {
+//let gcl_2 = () = {
+//
+//}
 
-    all_creeps = Game.creeps;
+const get_controller_level = (Game) => {
+    spawns = Object.keys(Game.spawns)
+    primary_room = Game.spawns[spawns[0]].room
+    var controller = primary_room.controller
+    var control_level = controller.level
+    return control_level
+}
+
+const count_creeps = () => {
     ncreeps = 0;
     nroles = [0, 0, 0];
-    for (const i in all_creeps) { 
+    for (const i in all_creeps) {
         ncreeps += 1;
         creep = Game.creeps[i].memory;
         //console.log(creep.role, i);
@@ -18,18 +28,37 @@ module.exports.loop = function () {
     //console.log(ncreeps);
     console.log('harvesters', nroles[0], 'builders', nroles[1], 'upgraders', nroles[2]);
     nharvesters = nroles[0]; nbuilders = nroles[1]; nupgraders = nroles[2];
-    if (nharvesters < 8) { 
+    return nroles
+}
+
+const spawn_creeps = (nroles, desired_creep_count) => {
+    nharvesters = nroles[0]; nbuilders = nroles[1]; nupgraders = nroles[2];
+    if (nharvesters < desired_creep_count[0]) {
         name = 'Worker'+Game.time%1000;
         Game.spawns['Primary'].spawnCreep([WORK, CARRY, MOVE], name, {memory: {role: 'harvester'} });
     }
-    if (nbuilders<5) { 
-        name = 'Worker'+Game.time%1000;
-        Game.spawns['Primary'].spawnCreep([WORK, CARRY, CARRY, MOVE], name, {memory: {role: 'builder'} });
+    return
+}
+module.exports.loop = function () {
+
+    all_creeps = Game.creeps;
+    spawns = Object.keys(Game.spawns)
+    control_level = get_controller_level(Game)
+    if (control_level == 1) {
+        nroles = count_creeps()
+        nharvesters = nroles[0]; nbuilders = nroles[1]; nupgraders = nroles[2];
+        spawn_creeps(nroles, [4,0,0])
     }
-    if (nupgraders<5) { 
-        name = 'Worker'+Game.time%1000;
-        Game.spawns['Primary'].spawnCreep([WORK, WORK, WORK, CARRY, CARRY, CARRY, MOVE], name, {memory: {role: 'upgrader'} });
-    }
+
+
+//    if (nbuilders<5) {
+//        name = 'Worker'+Game.time%1000;
+//        Game.spawns['Primary'].spawnCreep([WORK, CARRY, CARRY, MOVE], name, {memory: {role: 'builder'} });
+//    }
+//    if (nupgraders<5) {
+//        name = 'Worker'+Game.time%1000;
+//        Game.spawns['Primary'].spawnCreep([WORK, WORK, WORK, CARRY, CARRY, CARRY, MOVE], name, {memory: {role: 'upgrader'} });
+//    }
     
 
     for(var name in Game.creeps) {
